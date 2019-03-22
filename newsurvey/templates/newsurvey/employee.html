@@ -1,0 +1,94 @@
+{% load staticfiles %}
+<!doctype html>
+<html class="no-js" lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Survey Dashboard</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontastic.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/style.default.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fontastic.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css' % }">
+    <!-- Font Awesome CSS-->
+
+    <!-- jQuery Circle-->
+    <link href="{ % static 'css/grasp_mobile_progress_circle-1.0.0.min.css' %}">
+    <!-- Custom Scrollbar-->
+
+</head>
+<div class="page">
+    <!-- navbar-->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <div class="navbar-holder d-flex align-items-center justify-content-between">
+                    <div class="navbar-header">
+                        <a id="toggle-btn" href="#" class="menu-btn"><i class="icon-bars"> </i></a>
+                        <a href="#" class="navbar-brand">
+                            <div class="brand-text d-none d-md-inline-block"><span>Take </span>
+                                <strong class="text-primary"> Survey</strong>
+                            </div>
+                        </a>
+                    </div>
+
+                    <ul class="nav-menu list-unstyled d-flex flex-md-row align-items-md-center">
+                        <!--  dropdown-->
+                        <li class="nav-item">
+                            <a id="notifications" href="{% url 'index' %}" class="nav-link"><span>About Us</span></a>
+
+                        </li>
+
+                        <li class="nav-item">
+                            <a id="messages" class="nav-link" href="{% url 'employee' %}"><span>Employee Details</span></a>
+                        </li>
+
+                        <!-- Log out-->
+                        <li class="nav-item">
+                            <a href="{% url 'logout' %}" class="nav-link logout">
+                                <span class="d-none d-sm-inline-block">Logout</span><i class="fa fa-sign-out"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    {% block content %}
+
+    {% endblock %}
+
+
+</div>
+
+
+<footer class="main-footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-sm-6">
+              <p>Your company &copy; 2017-2019</p>
+            </div>
+            <div class="col-sm-6 text-right">
+              <p>Design by <a href="https://bootstrapious.com/p/bootstrap-4-dashboard" class="external">Bootstrapious</a></p>
+              <!-- Please do not remove the backlink to us unless you support further theme's development at https://bootstrapious.com/donate. It is part of the license conditions and it helps me to run Bootstrapious. Thank you for understanding :)-->
+            </div>
+          </div>
+        </div>
+      </footer>
+<!-- /container -->
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+<script src="{% static 'js/vendor/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

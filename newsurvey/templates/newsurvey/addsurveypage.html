@@ -1,0 +1,72 @@
+{% extends "newsurvey/index.html"%}
+{% load staticfiles %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<section class="dashboard-header section-padding">
+    <div class="container-fluid">
+        <div class="row d-flex align-items-md-stretch">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <h4>Add Survey</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="form" id="addsurveyForm" method="post" action="{% url 'Add_Survey' %}">
+                            {% csrf_token %}
+                            <div class="md-form form-group mt-5">
+                                <!-- left unspecified, .bmd-form-group will be automatically added (inspect the code) -->
+                                <label for="formGroupExampleInput" class="bmd-label-floating">Survey Name:</label>
+                                <input type="text" class="form-control" id="formGroupExampleInput" name="sur_name">
+                            </div>
+                            <div class="md-form form-group mt-5"> <!-- manually specified -->
+                                <label for="formGroupExampleInput2" class="bmd-label-floating">description:</label>
+                                <input type="text" class="form-control" id="formGroupExampleInput2" name="sur_desc">
+                            </div>
+                            <button type="submit" id="add_Surveybtn" class="btn btn-primary btn-raised">Add Survey
+                            </button>
+                 </form>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-header section-padding">
+
+    <div class="container-fluid">
+        <div class="row d-flex align-items-md-stretch">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Survey List </h4>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                        {% for survey in totalSurvey%}
+                            <li>
+                                survey.survey_name
+                            </li>
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+</section>
+
+</body>
+</html>
+
+{% endblock %}
+

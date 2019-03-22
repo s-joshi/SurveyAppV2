@@ -1,0 +1,50 @@
+{% extends "newsurvey/base.html"%}
+{% load staticfiles %}
+{% block content %}
+
+<link href="{% static 'css/style.default.css' %}" rel="stylesheet">
+<link href="{% static 'css/fontastic.css' %}" rel="stylesheet">
+
+     <div class="container-fluid">
+          <!-- Page Header-->
+        <header>
+            <h1 class="h3 display">Log In to Survey Portal</h1>
+          </header>
+            <div class="row">
+                <div class="col-lg-8">
+
+                    <h3>Login</h3>
+                      <div class="card">
+                           <div class="card-header d-flex align-items-center">
+
+                            </div>
+                          <div class="card-body">
+                              <form class="form-signin" method="POST" action="{% url 'login' %}">
+                            {% csrf_token %}
+
+                        <div class="form-group">
+                            <label class="sr-only">Username : </label>
+                            {{ form.username }}
+                        </div>
+
+                        <div class="form-group">
+                        <label class="sr-only">Password : </label>
+                            {{ form.password }}
+
+                        </div>
+
+                        <div class="form-group">
+                             <button class="btn" type="submit" style="font-size: 1.9rem;">Sign In</button>
+                        </div>
+                 </form>
+
+                </div>
+
+                </div>
+            </div>
+        </div>
+     </div>
+
+{% endblock %}
+
+

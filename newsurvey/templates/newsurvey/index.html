@@ -1,0 +1,147 @@
+{% load staticfiles %}
+<!doctype html>
+<html class="no-js" lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Survey Portal Dashboard</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontastic.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/style.default.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontastic.css' %}" rel="stylesheet">
+
+    <!-- Font Awesome CSS-->
+
+    <!-- jQuery Circle-->
+   <!-- <link href="{ % static 'css/grasp_mobile_progress_circle-1.0.0.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+-->
+    <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+    <script src="{% static 'js/orglist.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css" />
+    <!-- Custom Scrollbar-->
+
+</head>
+<body>
+    <nav class="side-navbar">
+      <div class="side-navbar-wrapper">
+        <!-- Sidebar Header    -->
+        <div class="sidenav-header d-flex align-items-center justify-content-center">
+          <!-- User Info-->
+
+          <div class="sidenav-header-inner text-center">
+            <h2 class="h5">Admin</h2>
+          </div>
+
+        </div>
+        <!-- Sidebar Navigation Menus-->
+                <div class="main-menu">
+                  <h5 class="sidenav-heading">Main</h5>
+                  <ul id="side-main-menu" class="side-menu list-unstyled">
+
+                    {% if user.is_authenticated and user.is_superuser and user.is_staff %}
+                    <li>
+                   <a id="addorg" href="{% url 'add_org'%}"> Add Organisation</a>
+                 </li>
+                <li>
+                    <a id="" href="{% url 'admin_register'%}"> Add Org Admin</a>
+                </li>
+                     {% else %}
+                      <li><a href="{% url 'upload_csv' %}">Add Employess </a></li>
+                      <li><a href="{% url 'Add_Survey' %}">Add Survey </a></li>
+                      <li><a href="{% url 'Assign_Survey' %}">Assign Survey</a></li>
+                      <li><a href="#">Add Questions</a></li>
+                    {% endif %}
+          </ul>
+
+        </div>
+    </div>
+    </nav>
+
+<div class="page">
+    <!-- navbar-->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <div class="navbar-holder d-flex align-items-center justify-content-between">
+                    <div class="navbar-header">
+                        <a id="toggle-btn" href="#" class="menu-btn"><i class="icon-bars"> </i></a>
+                        <a href="#" class="navbar-brand">
+                            <div class="brand-text d-none d-md-inline-block"><span>Survey </span>
+                                <strong class="text-primary"> Portal</strong>
+                            </div>
+                        </a>
+                    </div>
+
+                    <ul class="nav-menu list-unstyled d-flex flex-md-row align-items-md-center">
+                        <!--  dropdown-->
+                        <li class="nav-item">
+                            <a id="notifications" href="{% url 'index' %}" class="nav-link"><span>About Us</span></a>
+
+                        </li>
+
+                        <li class="nav-item">
+                            <a id="messages" class="nav-link" href="#"><span>Employee Details</span></a>
+                        </li>
+
+                         <li class="nav-item">
+                            <a id="messages1" class="nav-link" href="#"><span>Reports</span></a>
+                        </li>
+
+                        <!-- Log out-->
+                        <li class="nav-item">
+                            <a href="{% url 'logout' %}" class="nav-link logout">
+                                <span class="d-none d-sm-inline-block">Logout</span><i class="fa fa-sign-out"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    {% block content %}
+
+
+    {% endblock %}
+</div>
+
+    <footer class="main-footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-sm-6">
+              <p>Your company &copy; 2017-2019</p>
+            </div>
+            <div class="col-sm-6 text-right">
+              <p>Design by <a href="https://bootstrapious.com/p/bootstrap-4-dashboard" class="external">Bootstrapious</a></p>
+              <!-- Please do not remove the backlink to us unless you support further theme's development at https://bootstrapious.com/donate. It is part of the license conditions and it helps me to run Bootstrapious. Thank you for understanding :)-->
+            </div>
+          </div>
+        </div>
+      </footer>
+<!-- /container -->
+
+
+<!--
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+-->
+<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+<script src="{% static 'js/vendor/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+
+</body>
+</html>

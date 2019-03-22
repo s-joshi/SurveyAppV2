@@ -1,0 +1,29 @@
+.page {
+  position: absolute;
+  top: 0;
+  right: 0;
+  -webkit-transition: width 0.3s linear;
+  transition: width 0.3s linear;
+  width:90%;
+  background-color: #F4F7FA;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+.side-navbar .sidenav-header {
+    background:#292929;
+    padding: 19px;
+    margin-bottom: 10px;
+}
+.form-control {
+  height: calc(2.4rem + 2px);
+  padding: 0.45rem 0.75rem;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: #495057;
+  border-radius: 0;
+}
+
+#add_ordbtn{
+margin-top:30px
+}

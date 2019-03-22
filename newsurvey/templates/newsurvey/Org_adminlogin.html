@@ -1,0 +1,58 @@
+{% extends "newsurvey/index.html"%}
+{% load staticfiles %}
+{% block content %}
+
+<link href="{% static 'css/style.default.css' %}" rel="stylesheet">
+<link href="{% static 'css/fontastic.css' %}" rel="stylesheet">
+<link href="{% static 'css/register.css' %}" rel="stylesheet">
+
+  <div class="container">
+    	<div class="row">
+			<div class="col-lg-12">
+				 <div class="card">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Register Admin</h4>
+                </div>
+                        <div class="card-body">
+								<form id="register-form" class="form-horizontal" action="{% url 'admin_register' %}" method="post">
+                                     {% csrf_token %}
+								    <div class="form-group row">
+										<input type="text" name="adminname" id="adminname" tabindex="1" class="form-control" placeholder="adminname" value="">
+										{{ form.admin_name }}
+									</div>
+									<div class="form-group row">
+										<input type="text" name="username" id="username" tabindex="1" class="form-control" placeholder="Username" value="">
+										{{ form.ad_username }}
+									</div>
+									<div class="form-group row">
+										<input type="email" name="email" id="email" tabindex="1" class="form-control" placeholder="Email Address" value="">
+										{{form.admin_email}}
+									</div>
+                                     <div class="form-group row">
+										<input type="text" name="OrgnisationName" id="OrgnisationName" tabindex="1" class="form-control" placeholder="OrgnisationName" value="">
+										{{ form.company }}
+									</div>
+									<div class="form-group row">
+										<input type="password" name="password" id="password" tabindex="2" class="form-control" placeholder="Password">
+										{{form.ad_password}}
+									</div>
+
+
+									<div class="form-group">
+										<div class="row">
+											<div class="col-sm-6 col-sm-offset-3">
+												<input type="submit" name="register-submit" id="register-submit" tabindex="4" class="form-control btn btn-register" value="Register Now">
+											</div>
+										</div>
+									</div>
+								</form>
+                        </div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
+
+
