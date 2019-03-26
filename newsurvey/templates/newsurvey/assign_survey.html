@@ -33,6 +33,24 @@
                                 </div>
                                   {% endfor %}
                             </div>
+                            <div class="form-group">
+                              <div class='input-group date' id='datetimepicker1'>
+                                <p> Start Date: <input type="text" id="datepicker" name="startdatepicker"></p>
+
+                    <span class="input-group-addon">
+                        <span class="fa fa-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+              <div class='input-group date' id='datetimepicker2'>
+                <p> End Date: <input type="text" id="datepicker" name="enddatepicker"></p>
+
+    <span class="input-group-addon">
+        <span class="fa fa-calendar"></span>
+    </span>
+</div>
+</div>
                             <input type="submit" name="assign_btn" id="assign_btn" tabindex="4" class="btn btn-primary" value="Assign Now">
 
                     </form>
@@ -45,4 +63,6 @@
 
 
 </section>
+
+
 {% endblock %}

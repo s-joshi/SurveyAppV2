@@ -16,7 +16,9 @@ urlpatterns = [
     path('getSuvey_list/', views.getSuvey_list, name='getSuvey_list'),
     path('Assign_Survey/', views.Assign_Survey, name='Assign_Survey'),
     path('deleteorg/', views.delete_org, name='delete_org'),
-    path('store_assigned_surveys/', views.store_assigned_surveys, name='store_assigned_surveys')
-
-
+    path('store_assigned_surveys/', views.store_assigned_surveys, name='store_assigned_surveys'),
+    path('add_questions/', views.add_questions, name='add_questions'),
+    path('emp_survey_assign/', views.emp_survey_assign, name='emp_survey_assign'),
+    path('que_list/<int:survey_id>', views.question_list, name='que_list'),
+    path('save/<int:survey_id>', views.save, name='save'),
 ]

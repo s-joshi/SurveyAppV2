@@ -56,6 +56,7 @@ class Survey(models.Model):
     """
     survey_name = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
+    company = models.ForeignKey(Organization, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -126,6 +127,8 @@ class SurveyEmployee(models.Model):
     """
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
 
 
 
