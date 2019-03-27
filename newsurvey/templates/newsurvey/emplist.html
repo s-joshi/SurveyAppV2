@@ -5,18 +5,18 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header">
                         <h4>Add Employee List</h4>
                     </div>
                     <div class="card-body">
-                        <form action="{% url 'upload_csv' %}" method="POST" enctype="multipart/form-data" class="form-horizontal">
+                        <!-- <form action="{% url 'upload_csv' %}" method="POST" enctype="multipart/form-data" class="form-horizontal">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="Csv_Filename" class="col-md-3 col-sm-3 col-xs-12 control-label">File: </label>
                             <div class="col-md-8">
-                                <input type="file" name="csv_file" id="csv_file" required="True" class="form-control">
+                                <input type="file" name="csv_file" id="csv_file" required="True" class="">
                                 {{form.name}}
                             </div>
                         </div>
@@ -27,7 +27,31 @@
                                 </button>
                             </div>
                         </div>
-                        </form>
+                        </form> -->
+                        <form action="{% url 'redirect_emp' %}" method="POST" enctype="multipart/form-data" class="form-horizontal">
+                          {% csrf_token %}
+                          <div class="form-group">
+                              <div class="col-md-8">
+                        <input type="radio" name="radiobtn" class="" value="Select_CSV"/>
+                        <label for="Select_CSV" class="col-md-3 col-sm-3 col-xs-12 control-label">Bulk upload </label>
+                      </div>
+
+                          <div class="col-md-8">
+                        <input type="radio" name="radiobtn" class="" value="Fill_form"/>
+                        <label for="Fill_form" class="col-md-3 col-sm-3 col-xs-12 control-label">Fill form </label>
+                        </div>
+
+                      </div>
+
+                      <div class="form-group">
+                          <div class="col-md-3 col-sm-3 col-xs-12 col-md-offset-3" style="margin-bottom:10px;">
+                              <button class="btn btn-primary" type="submit"><span class="glyphicon glyphicon-upload"
+                                                                    style="margin-right:5px;"></span>Add Employee
+                              </button>
+                          </div>
+                      </div>
+                    </form>
+
                     </div>
                 </div>
             </div>
@@ -37,4 +61,8 @@
 
 
 </section>
+
+
+{% endblock %}
+{% block emp_cont %}
 {% endblock %}

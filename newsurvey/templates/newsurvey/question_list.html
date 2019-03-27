@@ -15,12 +15,12 @@
                         {% csrf_token %}
                         <ul>
                             {% for question in question_list %}
-                            <li> {{question.question}}</li>
-                            {%if question.question_type == 'text'%}
-                            <input type="text" name="{{question.id}}">
+                            <li> {{question.question__question}}</li>
+                            {%if question.question__question_type == 'text'%}
+                            <input type="text" name="{{question.question__id}}">
                             {%else%}
-                            {%for choice in question.get_choices %}
-                            <input type="radio" value="{{choice}}" name="{{question.id}}" class="radio-custom">
+                            {%for choice in question.question__choices %}
+                            <input type="radio" value="{{choice}}" name="{{question.question__id}}" class="radio-custom">
                             <lable>{{choice}}</lable>
 
                             {%endfor%}
@@ -28,7 +28,6 @@
                             {% endfor %}
 
                         </ul>
-
                         <input type="submit" class="btn btn-primary" style="margin-left:7px; margin-top:20px;" value="Save" name="submitform"/>
 
                         <!--<input type="submit" value="Finish"/>-->

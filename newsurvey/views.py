@@ -4,7 +4,7 @@ views for surveyadvance
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 import json
-from .forms import LoginForm, AdminForm, EventsForm
+from .forms import LoginForm, AdminForm, EventsForm,Emp_form
 from .models import (Organization, org_Admin, Employee, Survey,
                     SurveyEmployee, SurveyQuestion, SurveyResponse, Question)
 from django.contrib.auth.models import User
@@ -15,6 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 import logging
 import datetime
+
+surveys_completion_count = dict()
 
 # Create your views here.
 def index(request):
@@ -65,6 +67,7 @@ def admin_register(request):
     """
     form = AdminForm()
     context = {'form': form}
+    org_list = Organization.objects.all()
     if request.method == "POST":
         ad_username = request.POST.get("adminname")
         ad_password = request.POST.get("ad_password")
@@ -85,8 +88,7 @@ def admin_register(request):
         else:
             return redirect('admin_register')
 
-    return render(request, "newsurvey/Org_adminlogin.html")
-
+    return render(request, "newsurvey/Org_adminlogin.html",{'org_total': org_list})
 
 def logout(request):
     """
@@ -157,17 +159,17 @@ def upload_csv(request):
     """
     data = {}
     if "GET" == request.method:
-        return render(request, "newsurvey/emplist.html", data)
+        return render(request, "newsurvey/emp_csv.html", data)
     # if not GET, then proceed
     try:
         csv_file = request.FILES["csv_file"]
         if not csv_file.name.endswith('.csv'):
             messages.error(request, 'File is not CSV type')
-            return HttpResponseRedirect(reverse("upload_csv"))
+            return HttpResponseRedirect(reverse("emp_upload_csv"))
         # if file is too large, return
         if csv_file.multiple_chunks():
             messages.error(request, "Uploaded file is too big (%.2f MB)." % (csv_file.size / (1000 * 1000),))
-            return HttpResponseRedirect(reverse("upload_csv"))
+            return HttpResponseRedirect(reverse("emp_upload_csv"))
 
         file_data = csv_file.read().decode("utf-8")
 
@@ -207,7 +209,7 @@ def upload_csv(request):
         logging.getLogger("error_logger").error("Unable to upload file. " + repr(e))
         messages.error(request, "Unable to upload file. " + repr(e))
 
-    return HttpResponseRedirect(reverse("upload_csv"))
+    return HttpResponseRedirect(reverse("emp_upload_csv"))
 
 
 def Add_Survey(request):
@@ -393,10 +395,9 @@ def emp_survey_assign(request):
     incomplete_surveylen = 0
 
     for survey in emp_record:
-        survey_count = SurveyResponse.objects.filter(employee_id=emp.id, survey_id=survey.survey_id).count()
-
-        if survey_count:
-            if SurveyResponse.objects.filter(survey_id=survey.survey_id, employee_id=emp.id, SaveStatus=True):
+        emp_count = surveys_completion_count.get(emp.id)
+        if emp_count:
+            if not len(SurveyResponse.objects.filter(survey_id=survey.survey_id, employee_id=emp.id, SaveStatus=True)) == 0 and len(SurveyResponse.objects.filter(survey_id=survey.survey_id, employee_id=emp.id, SaveStatus=True)) == emp_count.get(survey.survey_id):
                 Completed_survey.append(survey)
             else:
                 incomplete_survey.append(survey)
@@ -430,8 +431,14 @@ def question_list(request, survey_id):
     """
     m = request.session['username']
 
-    emp_record = Question.objects.filter(surveyquestion__survey_id=survey_id)
+    unresponded_qns = SurveyResponse.objects.filter(survey__id=survey_id, SaveStatus=False)
 
+    if  unresponded_qns:
+        emp_record = SurveyResponse.objects.filter(survey__id=survey_id, SaveStatus=False).values('question__id','question__question_type','question__question','question__choices')
+        # import pdb;pdb.set_trace()
+    else:
+        emp_record = SurveyQuestion.objects.filter(survey__id=survey_id).values('question__id','question__question_type','question__question','question__choices')
+        # import pdb;pdb.set_trace()
     page = request.GET.get('page')
     paginator = Paginator(emp_record, 5)
 
@@ -441,6 +448,9 @@ def question_list(request, survey_id):
         emp_record = paginator.page(1)
     except EmptyPage:
         emp_record = paginator.page(paginator.num_pages)
+
+    for qn in emp_record:
+        qn['question__choices'] = qn.get('question__choices').split(",") if qn.get('question__choices') else None
 
     context = {'session': m,
                'survey_id': survey_id,
@@ -454,24 +464,95 @@ def save(request, survey_id):
     """
     m = request.session['username']
     emp = Employee.objects.get(emp_username=m)
+    qns_responded = 0
+    list_of_qns_answered = list()
 
+    emp_obj = Employee.objects.get(id=emp.id)
+    survey_obj = Survey.objects.get(id=survey_id)
     for name in request.POST:
         if name != "csrfmiddlewaretoken" and name != "submitform":
+            qn_obj = Question.objects.get(id=name)
+            list_of_qns_answered.append(qn_obj)
             isRecord = SurveyResponse.objects.filter(
-            survey=Survey.objects.get(id=survey_id),
-            employee=Employee.objects.get(id=emp.id),
-            question=Question.objects.get(id=name))
+            survey=survey_obj,
+            employee=emp_obj,
+            question=Question.objects.get(id=name), SaveStatus=False)
 
             if not isRecord:
-                if request.POST[name]:
-                    surveyResponseObj = SurveyResponse()
-                    surveyResponseObj.survey = Survey.objects.get(id=survey_id)
-                    surveyResponseObj.employee = Employee.objects.get(id=emp.id)
-                    surveyResponseObj.question = Question.objects.get(id=name)
-                    surveyResponseObj.response = request.POST[name]
-                    if request.POST['submitform'] == "Save":
-                        surveyResponseObj.SaveStatus = False
-                    else:
-                        surveyResponseObj.SaveStatus = True
-                    surveyResponseObj.save()
+                # if request.POST[name]:
+                surveyResponseObj = SurveyResponse()
+                surveyResponseObj.survey = survey_obj
+                surveyResponseObj.employee = emp_obj
+                surveyResponseObj.question = qn_obj
+                surveyResponseObj.response = request.POST.get(name) if request.POST.get(name) else ''
+                if request.POST['submitform'] == "Save" and request.POST.get(name) and not request.POST.get(name) == '':
+                    surveyResponseObj.SaveStatus = True
+                    qns_responded += 1
+                else:
+                    surveyResponseObj.SaveStatus = False
+                surveyResponseObj.save()
+
+    qns_for_survey = Question.objects.filter(surveyquestion__survey__id=survey_id)
+    import pdb;pdb.set_trace()
+
+    if not len(qns_for_survey) == qns_responded:
+        for qn in qns_for_survey:
+            if qn not in list_of_qns_answered:
+                surveyResponseObj = SurveyResponse()
+                surveyResponseObj.survey = survey_obj
+                surveyResponseObj.employee = emp_obj
+                surveyResponseObj.question = qn_obj
+                surveyResponseObj.response = request.POST.get(name) if request.POST.get(name) else ''
+                surveyResponseObj.SaveStatus = False
+                surveyResponseObj.save()
+
+    if not surveys_completion_count.get(emp.id):
+            surveys_completion_count[emp.id] = dict()
+
+    surveys_completion_count[emp.id][survey_id] = len(qns_for_survey)
+    print("Answered",qns_responded)
+
+
     return redirect("emp_survey_assign")
+
+
+def select_emp_action(request):
+    """
+    Select view to render for adding employees.
+    """
+
+    return render(request, 'newsurvey/emplist.html')
+
+def redirect_to_emp_view(request):
+    selected_option = request.POST.get('radiobtn')
+
+    if selected_option == 'Select_CSV':
+
+        return render(request, "newsurvey/emp_csv.html")
+
+    elif selected_option == 'Fill_form':
+        org_list = Organization.objects.all()
+        return render(request, 'newsurvey/emp_form.html', {'org_total': org_list})
+
+def render_emp_form(request):
+    return render(request, 'newsurvey/emp_form.html')
+
+def emp_form_save(request):
+    """
+    adding multiple surveys
+    """
+    print("helloo emp form")
+    if request.method == "POST":
+            org_name = request.POST.get('OrgnisationName')
+            empform_obj1 = Employee()
+            empform_obj1.emp_name = request.POST.get('emp_name')
+            empform_obj1.emp_username = request.POST.get('emp_username')
+            empform_obj1.emp_password = request.POST.get('emp_password')
+            empform_obj1.emp_designation = request.POST.get('emp_designation')
+            empform_obj1.emp_address = request.POST.get('emp_address')
+            empform_obj1.company = Organization.objects.get(company_name=org_name)
+            empform_obj1.save()
+            return redirect("index")
+    else:
+        return redirect('index')
+    return render(request, 'newsurvey/emp_form.html')

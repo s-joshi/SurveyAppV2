@@ -1,0 +1,67 @@
+{% extends "newsurvey/index.html"%}
+{% load staticfiles %}
+{% block content %}
+
+<link href="{% static 'css/style.default.css' %}" rel="stylesheet">
+<link href="{% static 'css/fontastic.css' %}" rel="stylesheet">
+<link href="{% static 'css/register.css' %}" rel="stylesheet">
+
+  <div class="container">
+    	<div class="row">
+			<div class="col-lg-12">
+				 <div class="card">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Register Employes</h4>
+                </div>
+                        <div class="card-body">
+								<form id="register-form" class="form-horizontal" action="{% url 'emp_form_save' %}" method="post">
+                                     {% csrf_token %}
+                                     <div class="form-group ">
+										 <label class="control-label" for="Org-list"><h5>
+                                 		  Select Orgnisation:</h5></label>
+										<select id='OrgnisationName' name="OrgnisationName">
+                                  		<option value=''>- Please choose -</option>
+                                		 {% for c in org_total %}
+                               			  <option value="{{ c.company_name}}">{{ c.company_name }}</option>
+                                 		 {% endfor %}
+
+                           			 </select>
+								    <div class="form-group row">
+										<input type="text" name="emp_name" id="emp_name" tabindex="1" class="form-control" placeholder="emp_name" value="">
+										{{ form.emp_name }}
+									</div>
+									<div class="form-group row">
+										<input type="text" name="emp_username" id="emp_username" tabindex="1" class="form-control" placeholder="Username" value="">
+										{{ form.emp_username }}
+									</div>
+                  <div class="form-group row">
+										<input type="text" name="emp_designation" id="emp_designation" tabindex="1" class="form-control" placeholder="Designation" value="">
+										{{ form.emp_designation }}
+									</div>
+									<div class="form-group row">
+										<input type="emp_address" name="emp_address" id="emp_address" tabindex="1" class="form-control" placeholder="Email Address" value="">
+										{{form.emp_address}}
+									</div>
+
+									<div class="form-group row">
+										<input type="emp_password" name="emp_password" id="emp_password" tabindex="2" class="form-control" placeholder="Password">
+										{{form.emp_password}}
+									</div>
+
+
+									<div class="form-group">
+										<div class="row">
+											<div class="col-sm-6 col-sm-offset-3">
+												<input type="submit" name="emp_register-submit" id="emp_register-submit" tabindex="4" class="form-control btn btn-register" value="Add Now">
+											</div>
+										</div>
+									</div>
+								</form>
+                </div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
