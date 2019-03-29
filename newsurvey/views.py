@@ -1,26 +1,29 @@
 """
 views for surveyadvance
 """
+import json
+import logging
+import datetime
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
-import json
-from .forms import LoginForm, AdminForm, EventsForm,Emp_form
-from .models import (Organization, org_Admin, Employee, Survey,
-                    SurveyEmployee, SurveyQuestion, SurveyResponse, Question)
 from django.contrib.auth.models import User
 from django.core.paginator import (Paginator, EmptyPage, PageNotAnInteger)
-from django.contrib.auth import authenticate, login
+from django.contrib import auth
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
-import logging
-import datetime
+from .forms import (LoginForm, AdminForm, EventsForm)
+from .models import (Organization, org_Admin, Employee, Survey,
+                     SurveyEmployee, SurveyQuestion, SurveyResponse, Question)
 
 surveys_completion_count = dict()
 
 # Create your views here.
+
+
 def index(request):
     return render(request, 'newsurvey/index.html')
+
 
 @csrf_exempt
 def login(request):
@@ -32,13 +35,14 @@ def login(request):
         password = request.POST.get("password")
 
     try:
-        usersdata = User.objects.filter(username=username, password=password)
         if(User.objects.filter(username=username).
                 exists()):
-            user = authenticate(username=username, password=password)
+            user = auth.authenticate(username=username, password=password)
+            auth.login(request, user)
             return redirect('index')
         try:
-            org_admin_obj = org_Admin.objects.get(admin_username=username, password=password)
+            org_admin_obj = org_Admin.objects.get(admin_username=username,
+                                                  password=password)
             request.session['username'] = org_admin_obj.admin_username
             request.session['org_name'] = org_admin_obj.company.company_name
             return redirect('index')
@@ -46,8 +50,9 @@ def login(request):
             print("Org admin with this username and password not available.")
             print(e)
             try:
-                Employee.objects.get(emp_username=username, emp_password=password)
-                m = request.session['username'] = username
+                Employee.objects.get(emp_username=username,
+                                     emp_password=password)
+                request.session['username'] = username
                 return redirect('emp_survey_assign')
             except Exception as e:
                 print("No Emp available")
@@ -60,7 +65,6 @@ def login(request):
     return render(request, "newsurvey/login.html", context)
 
 
-@csrf_exempt
 def admin_register(request):
     """
     Admin register
@@ -69,8 +73,8 @@ def admin_register(request):
     context = {'form': form}
     org_list = Organization.objects.all()
     if request.method == "POST":
-        ad_username = request.POST.get("adminname")
-        ad_password = request.POST.get("ad_password")
+        # ad_username = request.POST.get("adminname")
+        # ad_password = request.POST.get("ad_password")
         m = request.POST.get('OrgnisationName')
         Org_names = Organization.objects.get(company_name=m)
         if request.POST.get('adminname') and request.POST.get('username')\
@@ -88,13 +92,17 @@ def admin_register(request):
         else:
             return redirect('admin_register')
 
-    return render(request, "newsurvey/Org_adminlogin.html",{'org_total': org_list})
+    return render(request, "newsurvey/Org_adminlogin.html", {
+        'org_total': org_list})
+
 
 def logout(request):
     """
     Session logout
     """
     try:
+        if request.user.is_superuser:
+            auth.logout(request)
         del request.session['username']
     except KeyError:
         pass
@@ -131,10 +139,11 @@ def getorgdata(request):
     org.append(org_details1)
     i = 0
     temp_list = dict()
-    data = {}
+    # data = {}
     for org1 in org_details1:
         i = i + 1
-        temp_list[i] = [i, str(org1.company_name), str(org1.location), str(org1.description)]
+        temp_list[i] = [i, str(org1.company_name), str(org1.location),
+                        str(org1.description)]
     print("temp_list", temp_list)
     data = temp_list
 
@@ -158,7 +167,8 @@ def upload_csv(request):
     csv extract
     """
     data = {}
-    if "GET" == request.method:
+    import pdb;pdb.set_trace()
+    if request.method == 'GET':
         return render(request, "newsurvey/emp_csv.html", data)
     # if not GET, then proceed
     try:
@@ -166,20 +176,24 @@ def upload_csv(request):
         if not csv_file.name.endswith('.csv'):
             messages.error(request, 'File is not CSV type')
             return HttpResponseRedirect(reverse("emp_upload_csv"))
+
         # if file is too large, return
         if csv_file.multiple_chunks():
-            messages.error(request, "Uploaded file is too big (%.2f MB)." % (csv_file.size / (1000 * 1000),))
+            messages.error(request, "Uploaded file is too big (%.2f MB)." % (
+                csv_file.size / (1000 * 1000),))
             return HttpResponseRedirect(reverse("emp_upload_csv"))
 
         file_data = csv_file.read().decode("utf-8")
 
         lines = file_data.split("\n")
 
-        # loop over the lines and save them in db. If error , store as string and then display
+        # loop over the lines and save them in db. If error ,
+        #  store as string and then display
         for line in lines:
             if line != "":
                 fields = line.split(",")
-                data_dict = {}
+
+                data_dict = dict()
                 data_dict["emp_name"] = fields[0]
                 data_dict["emp_username"] = fields[1]
                 data_dict["emp_password"] = fields[2]
@@ -190,15 +204,21 @@ def upload_csv(request):
 
                 try:
                     form = EventsForm(data_dict)
-                    if data_dict.get('company') == request.session.get('org_name'):
-                        Org_names = Organization.objects.get(company_name=request.session.get('org_name'))
+                    if data_dict.get('company') == request.session.get(
+                            'org_name'):
+                        org_names = Organization.objects.get(
+                            company_name=request.session.get('org_name'))
+
                         org_employee_obj = Employee()
                         org_employee_obj.emp_name = data_dict["emp_name"]
-                        org_employee_obj.emp_username = data_dict["emp_username"]
-                        org_employee_obj.emp_password = data_dict["emp_password"]
-                        org_employee_obj.emp_designation = data_dict["emp_designation"]
+                        org_employee_obj.emp_username = data_dict[
+                            "emp_username"]
+                        org_employee_obj.emp_password = data_dict[
+                            "emp_password"]
+                        org_employee_obj.emp_designation = data_dict[
+                            "emp_designation"]
                         org_employee_obj.emp_address = data_dict["emp_address"]
-                        org_employee_obj.company = Org_names
+                        org_employee_obj.company = org_names
 
                         org_employee_obj.save()
                 except Exception as e:
@@ -206,13 +226,15 @@ def upload_csv(request):
                     pass
 
     except Exception as e:
-        logging.getLogger("error_logger").error("Unable to upload file. " + repr(e))
+        logging.getLogger("error_logger").error(
+            "Unable to upload file. " + repr(e))
+
         messages.error(request, "Unable to upload file. " + repr(e))
 
     return HttpResponseRedirect(reverse("emp_upload_csv"))
 
 
-def Add_Survey(request):
+def add_survey(request):
     """
     adding multiple surveys
     """
@@ -224,10 +246,11 @@ def Add_Survey(request):
             survey_obj1 = Survey()
             survey_obj1.survey_name = request.POST.get('sur_name')
             survey_obj1.description = request.POST.get('sur_desc')
-            survey_obj1.company = Organization.objects.get(company_name=org_name)
+            survey_obj1.company = Organization.objects.get(
+                company_name=org_name)
             survey_obj1.date = datetime.datetime.now()
             survey_obj1.save()
-            return redirect("Add_Survey")
+            return redirect("add_survey")
         else:
             return redirect('index')
     return render(request, 'newsurvey/addsurveypage.html')
@@ -239,10 +262,11 @@ def getSuvey_list(request):
     """
     total_survey = Survey.objects.all()
     context = {'total_survey': total_survey}
-    return HttpResponse(json.dumps(list(context)), content_type="application/json")
+    return HttpResponse(json.dumps(list(context)),
+                        content_type="application/json")
 
 
-def Assign_Survey(request):
+def assign_survey(request):
     """
     assigning_survey
     :param request:
@@ -258,7 +282,8 @@ def Assign_Survey(request):
 
     return render(request, 'newsurvey/assign_survey.html',
                   {'total_surveylist': total_survey,
-                  'emplist': emp_list})
+                   'emplist': emp_list})
+
 
 def store_assigned_surveys(request):
     """
@@ -283,9 +308,8 @@ def store_assigned_surveys(request):
         for survey in surveys_list:
             survey_objs.append(Survey.objects.get(survey_name=survey))
 
-        print("suvryes",surveys_list)
-        print("emp",emp_list)
-
+        print("suvryes", surveys_list)
+        print("emp", emp_list)
 
         for survey in survey_objs:
             for emp in emp_objs:
@@ -300,6 +324,7 @@ def store_assigned_surveys(request):
         print(request.POST.getlist('employees'))
     return redirect('index')
 
+
 def add_questions(request):
     total_survey = Survey.objects.all()
     """
@@ -308,7 +333,8 @@ def add_questions(request):
     data = {}
 
     if "GET" == request.method:
-        return render(request, 'newsurvey/addquestions.html', {'total_surveylist': total_survey}, data)
+        return render(request, 'newsurvey/addquestions.html', {
+            'total_surveylist': total_survey}, data)
     # if not GET, then proceed
     try:
         print("enter try")
@@ -329,14 +355,16 @@ def add_questions(request):
 
         lines = file_data.split("\n")
 
-        # loop over the lines and save them in db. If error , store as string and then display
+        # loop over the lines and save them in db. If error ,
+        #  store as string and then display
         # qn_list = list()
 
         qn_survey = SurveyQuestion()
         try:
             survey_name = request.POST.get('dropdownid')
             print(survey_name)
-            qn_survey.survey = Survey.objects.filter(survey_name=survey_name)[0]
+            qn_survey.survey = Survey.objects.filter(
+                survey_name=survey_name)[0]
 
         except Exception as e:
             print("No such Survey available.")
@@ -345,22 +373,26 @@ def add_questions(request):
                 fields = line.split(":")    # separate fields on ':'
                 print("fields", fields)
                 print("filedsss", len(fields))
-                data_dict = {}
-                data_dict["question_type"] = fields[0]
+
+                data_dict = dict()
+                data_dict["question_type"] = fields[0].split('"')[
+                    1] if '"' in fields[0] else fields[0]
                 data_dict["question"] = fields[1]
-                data_dict["is_required"] = True if 'True' in fields[2] else False
+                data_dict["is_required"] = True if 'True' in fields[
+                    2] else False
                 if len(fields) == 4:
-                    data_dict["choices"] = fields[3]
+                    data_dict["choices"] = fields[3].split(
+                        '"')[0] if '"' in fields[3] else fields[3]
                 else:
                     data_dict["choices"] = None
-                print("data-dict****", data_dict)
 
                 try:
                     org_question_obj = Question()
-                    org_question_obj.Question_types = data_dict["question_type"]
+                    org_question_obj.Question_types.set(
+                        data_dict.get("question_type"))
                     org_question_obj.question = data_dict["question"]
                     org_question_obj.is_required = data_dict["is_required"]
-                    org_question_obj.choices = data_dict["choices"]
+                    org_question_obj.choices.set = data_dict["choices"]
 
                     org_question_obj.save()
                     qn_survey.question.add(org_question_obj)
@@ -377,6 +409,7 @@ def add_questions(request):
         messages.error(request, "Unable to upload file. " + repr(e))
 
     return HttpResponseRedirect(reverse("add_questions"))
+
 
 def emp_survey_assign(request):
     """
@@ -395,9 +428,19 @@ def emp_survey_assign(request):
     incomplete_surveylen = 0
 
     for survey in emp_record:
-        emp_count = surveys_completion_count.get(emp.id)
-        if emp_count:
-            if not len(SurveyResponse.objects.filter(survey_id=survey.survey_id, employee_id=emp.id, SaveStatus=True)) == 0 and len(SurveyResponse.objects.filter(survey_id=survey.survey_id, employee_id=emp.id, SaveStatus=True)) == emp_count.get(survey.survey_id):
+        # import pdb;
+        # pdb.set_trace()
+        survey_count = SurveyResponse.objects.filter(employee_id=emp.id,
+                                                     survey_id=survey.survey_id
+                                                     ).count()
+        survey_submitted_count = SurveyEmployee.objects.filter(
+            employee_id=emp.id,
+            survey_id=survey.survey_id,
+            submited_survey=True
+        ).count()
+
+        if survey_count:
+            if survey_submitted_count:
                 Completed_survey.append(survey)
             else:
                 incomplete_survey.append(survey)
@@ -408,21 +451,23 @@ def emp_survey_assign(request):
         completed_surveylen = len(Completed_survey)
         print("completed survey", completed_surveylen)
         print("incomplete survey", incomplete_surveylen)
-        assign_surveycount = len(assign_survey)
+        assign_surveycount1 = len(assign_survey)
 
-        #status_check = SurveyResponse.objects.filter(survey_id=survey.survey_id, employee_id=emp.id)
+        status_check = SurveyResponse.objects.filter(
+            survey_id=survey.survey_id, employee_id=emp.id)
 
     context = {
         'session': m,
         'total_survey': total_survey,
+        'StatusCheck': status_check,
         'survey_list': emp_record,
         'completed_survey': Completed_survey,
         'incomplete_survey': incomplete_survey,
-        'assign_survey': assign_surveycount,
+        'assign_survey': assign_surveycount1,
         'complete_count': completed_surveylen,
         'incomplete_count': incomplete_surveylen}
 
-    return render(request,'newsurvey/empdashboard.html',context)
+    return render(request, 'newsurvey/empdashboard.html', context)
 
 
 def question_list(request, survey_id):
@@ -431,14 +476,20 @@ def question_list(request, survey_id):
     """
     m = request.session['username']
 
-    unresponded_qns = SurveyResponse.objects.filter(survey__id=survey_id, SaveStatus=False)
+    unresponded_qns = SurveyResponse.objects.filter(survey__id=survey_id,
+                                                    SaveStatus=False)
 
-    if  unresponded_qns:
-        emp_record = SurveyResponse.objects.filter(survey__id=survey_id, SaveStatus=False).values('question__id','question__question_type','question__question','question__choices')
-        # import pdb;pdb.set_trace()
+    if unresponded_qns:
+        emp_record = SurveyResponse.objects.filter(
+            survey__id=survey_id, SaveStatus=False).values(
+            'question__id', 'question__question_type',
+            'question__question', 'question__choices')
     else:
-        emp_record = SurveyQuestion.objects.filter(survey__id=survey_id).values('question__id','question__question_type','question__question','question__choices')
-        # import pdb;pdb.set_trace()
+        emp_record = SurveyQuestion.objects.filter(
+            survey__id=survey_id).values(
+            'question__id', 'question__question_type',
+            'question__question', 'question__choices')
+
     page = request.GET.get('page')
     paginator = Paginator(emp_record, 5)
 
@@ -450,7 +501,8 @@ def question_list(request, survey_id):
         emp_record = paginator.page(paginator.num_pages)
 
     for qn in emp_record:
-        qn['question__choices'] = qn.get('question__choices').split(",") if qn.get('question__choices') else None
+        qn['question__choices'] = qn.get('question__choices').split(
+            ",") if qn.get('question__choices') else None
 
     context = {'session': m,
                'survey_id': survey_id,
@@ -458,60 +510,58 @@ def question_list(request, survey_id):
 
     return render(request, 'newsurvey/question_list.html', context)
 
+
 def save(request, survey_id):
     """
     View to handle saving the survey in between. (without submitting)
     """
     m = request.session['username']
     emp = Employee.objects.get(emp_username=m)
-    qns_responded = 0
-    list_of_qns_answered = list()
 
-    emp_obj = Employee.objects.get(id=emp.id)
-    survey_obj = Survey.objects.get(id=survey_id)
     for name in request.POST:
         if name != "csrfmiddlewaretoken" and name != "submitform":
-            qn_obj = Question.objects.get(id=name)
-            list_of_qns_answered.append(qn_obj)
-            isRecord = SurveyResponse.objects.filter(
-            survey=survey_obj,
-            employee=emp_obj,
-            question=Question.objects.get(id=name), SaveStatus=False)
 
-            if not isRecord:
-                # if request.POST[name]:
-                surveyResponseObj = SurveyResponse()
-                surveyResponseObj.survey = survey_obj
-                surveyResponseObj.employee = emp_obj
-                surveyResponseObj.question = qn_obj
-                surveyResponseObj.response = request.POST.get(name) if request.POST.get(name) else ''
-                if request.POST['submitform'] == "Save" and request.POST.get(name) and not request.POST.get(name) == '':
-                    surveyResponseObj.SaveStatus = True
-                    qns_responded += 1
-                else:
-                    surveyResponseObj.SaveStatus = False
-                surveyResponseObj.save()
+            if request.POST['submitform'] == "Submit":
+                print("aaaa")
+                emp = SurveyEmployee.objects.get(
+                    employee_id=emp.id,
+                    survey_id=Survey.objects.get(id=survey_id).id)
+                emp.submited_survey = True
+                emp.save()
+                
+            is_record = SurveyResponse.objects.filter(
+                survey=Survey.objects.get(id=survey_id),
+                employee=Employee.objects.get(id=emp.id),
+                question=Question.objects.get(id=name))
 
-    qns_for_survey = Question.objects.filter(surveyquestion__survey__id=survey_id)
-    import pdb;pdb.set_trace()
+            if not is_record:
+                if request.POST[name]:
+                    save_object = False
+                    # survey_response_obj = SurveyResponse()
+                    # survey_response_obj.survey = Survey.objects.get(
+                    #     id=survey_id)
+                    # survey_response_obj.employee = Employee.objects.get(
+                    #     id=emp.id)
+                    # survey_response_obj.question = Question.objects.get(
+                    #     id=name)
+                    # survey_response_obj.response = request.POST[name]
+                    if request.POST['submitform'] == "Save" and \
+                            request.POST[name] != '':
+                        save_object = True
+                    else:
+                        save_object = False
 
-    if not len(qns_for_survey) == qns_responded:
-        for qn in qns_for_survey:
-            if qn not in list_of_qns_answered:
-                surveyResponseObj = SurveyResponse()
-                surveyResponseObj.survey = survey_obj
-                surveyResponseObj.employee = emp_obj
-                surveyResponseObj.question = qn_obj
-                surveyResponseObj.response = request.POST.get(name) if request.POST.get(name) else ''
-                surveyResponseObj.SaveStatus = False
-                surveyResponseObj.save()
-
-    if not surveys_completion_count.get(emp.id):
-            surveys_completion_count[emp.id] = dict()
-
-    surveys_completion_count[emp.id][survey_id] = len(qns_for_survey)
-    print("Answered",qns_responded)
-
+                    survey_obj, created = SurveyResponse.objects.get_or_create(
+                        survey=Survey.objects.get(id=survey_id),
+                        employee=Employee.objects.get(id=emp.id),
+                        question=Question.objects.get(id=name),
+                        response=request.POST.get(name),
+                        SaveStatus=save_object
+                    )
+                    # import pdb;pdb.set_trace()
+                    if not created:
+                        survey_obj.response = request.POST.get(name)
+                        survey_obj.save()
 
     return redirect("emp_survey_assign")
 
@@ -523,25 +573,37 @@ def select_emp_action(request):
 
     return render(request, 'newsurvey/emplist.html')
 
+
 def redirect_to_emp_view(request):
+    """
+    Render the emp add view depending on selected option.
+    :param request:
+    :return:
+    """
     selected_option = request.POST.get('radiobtn')
 
     if selected_option == 'Select_CSV':
-
-        return render(request, "newsurvey/emp_csv.html")
+        return render(request, 'newsurvey/emp_csv.html')
 
     elif selected_option == 'Fill_form':
         org_list = Organization.objects.all()
-        return render(request, 'newsurvey/emp_form.html', {'org_total': org_list})
+        return render(request, 'newsurvey/emp_form.html', {
+            'org_total': org_list})
+
 
 def render_emp_form(request):
+    """
+    render the view for adding single employee to the system.
+    :param request:
+    :return:
+    """
     return render(request, 'newsurvey/emp_form.html')
+
 
 def emp_form_save(request):
     """
     adding multiple surveys
     """
-    print("helloo emp form")
     if request.method == "POST":
             org_name = request.POST.get('OrgnisationName')
             empform_obj1 = Employee()
@@ -550,9 +612,9 @@ def emp_form_save(request):
             empform_obj1.emp_password = request.POST.get('emp_password')
             empform_obj1.emp_designation = request.POST.get('emp_designation')
             empform_obj1.emp_address = request.POST.get('emp_address')
-            empform_obj1.company = Organization.objects.get(company_name=org_name)
+            empform_obj1.company = Organization.objects.get(
+                company_name=org_name)
             empform_obj1.save()
             return redirect("index")
     else:
         return redirect('index')
-    return render(request, 'newsurvey/emp_form.html')

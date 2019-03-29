@@ -13,7 +13,7 @@
                         <h4>Add Survey</h4>
                     </div>
                     <div class="card-body">
-                        <form class="form" id="addsurveyForm" method="post" action="{% url 'Add_Survey' %}">
+                        <form class="form" id="addsurveyForm" method="post" action="{% url 'add_survey' %}">
                             {% csrf_token %}
                             <div class="md-form form-group mt-5">
                                 <!-- left unspecified, .bmd-form-group will be automatically added (inspect the code) -->

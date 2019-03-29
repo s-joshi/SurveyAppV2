@@ -4,6 +4,7 @@ models for surveyadvance
 from django.db import models
 from django.core.exceptions import ValidationError
 
+
 class Organization(models.Model):
     """
     organization table
@@ -14,6 +15,7 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.company_name
+
 
 class org_Admin(models.Model):
     """
@@ -30,6 +32,7 @@ class org_Admin(models.Model):
 
     class Meta:
         verbose_name_plural = 'org_Admin'
+
 
 class Employee(models.Model):
     """
@@ -49,6 +52,7 @@ class Employee(models.Model):
 
     class Meta:
         verbose_name_plural = 'Employees'
+
 
 class Survey(models.Model):
     """
@@ -75,6 +79,7 @@ def validate_list(value):
         raise ValidationError(
             "The selected field requires an associated list "
             "of choices. Choices must contain more than one item.")
+
 
 class Question(models.Model):
     """
@@ -129,7 +134,7 @@ class SurveyEmployee(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
-
+    submited_survey = models.BooleanField(default=False)
 
 
 class SurveyQuestion(models.Model):
@@ -138,6 +143,7 @@ class SurveyQuestion(models.Model):
     """
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     question = models.ManyToManyField(Question)
+
 
 class SurveyResponse(models.Model):
     """
@@ -149,3 +155,6 @@ class SurveyResponse(models.Model):
     response = models.TextField(blank=True, null=True)
     created_date = models.DateField(auto_now_add=True)
     SaveStatus = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('employee', 'survey', 'question')
