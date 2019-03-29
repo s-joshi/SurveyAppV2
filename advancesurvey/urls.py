@@ -14,10 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include
+# start mailing scheduler every time the server starts running
+from newsurvey.email_schedular import ScheduleSendEmail
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('newsurvey/', include('newsurvey.urls'))
 
 ]
+
+ScheduleSendEmail.get_mailee_data()
