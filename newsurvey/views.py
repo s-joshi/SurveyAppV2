@@ -4,6 +4,7 @@ views for surveyadvance
 import json
 import logging
 import datetime
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
@@ -15,12 +16,14 @@ from django.urls import reverse
 from .forms import (LoginForm, AdminForm, EventsForm)
 from .models import (Organization, org_Admin, Employee, Survey,
                      SurveyEmployee, SurveyQuestion, SurveyResponse, Question)
+from .custom_login_decorator import employee_login_required
 
 surveys_completion_count = dict()
 
 # Create your views here.
 
 
+@login_required(login_url='/login/')
 def index(request):
     return render(request, 'newsurvey/index.html')
 
@@ -65,6 +68,7 @@ def login(request):
     return render(request, "newsurvey/login.html", context)
 
 
+@login_required(login_url='/login/')
 def admin_register(request):
     """
     Admin register
@@ -109,12 +113,12 @@ def logout(request):
     return redirect('login')
 
 
+@login_required(login_url='/login/')
 def add_org(request):
     """
     add organization admin
     """
     if request.method == "POST":
-
         if request.POST.get('org_name') and request.POST.get('org_loc') \
                 and request.POST.get('org_desc'):
             organization_object = Organization()
@@ -130,6 +134,7 @@ def add_org(request):
     return render(request, "newsurvey/org.html")
 
 
+@login_required(login_url='/login/')
 def getorgdata(request):
     """
     get organisation list
@@ -150,6 +155,7 @@ def getorgdata(request):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
+@login_required(login_url='/login/')
 def delete_org(request):
     """
     Delete particular org with org name.
@@ -161,13 +167,12 @@ def delete_org(request):
     org_record.delete()
     return HttpResponse({'result': 'success'})
 
-
+@employee_login_required
 def upload_csv(request):
     """
     csv extract
     """
     data = {}
-    import pdb;pdb.set_trace()
     if request.method == 'GET':
         return render(request, "newsurvey/emp_csv.html", data)
     # if not GET, then proceed
@@ -232,8 +237,11 @@ def upload_csv(request):
         messages.error(request, "Unable to upload file. " + repr(e))
 
     return HttpResponseRedirect(reverse("emp_upload_csv"))
+    # else:
+    #     return redirect('login')
 
 
+@employee_login_required
 def add_survey(request):
     """
     adding multiple surveys
@@ -256,6 +264,7 @@ def add_survey(request):
     return render(request, 'newsurvey/addsurveypage.html')
 
 
+@employee_login_required
 def getSuvey_list(request):
     """
     getting survey list
@@ -266,6 +275,7 @@ def getSuvey_list(request):
                         content_type="application/json")
 
 
+@employee_login_required
 def assign_survey(request):
     """
     assigning_survey
@@ -285,6 +295,7 @@ def assign_survey(request):
                    'emplist': emp_list})
 
 
+@employee_login_required
 def store_assigned_surveys(request):
     """
     Store the multiple surveys assigned to employees in database.
@@ -325,6 +336,7 @@ def store_assigned_surveys(request):
     return redirect('index')
 
 
+@employee_login_required
 def add_questions(request):
     total_survey = Survey.objects.all()
     """
@@ -411,11 +423,12 @@ def add_questions(request):
     return HttpResponseRedirect(reverse("add_questions"))
 
 
+@employee_login_required
 def emp_survey_assign(request):
     """
     View to render dashboard page for employee when employee logs in.
     """
-    m = request.session['username']
+    m = request.session.get('username')
     emp = Employee.objects.get(emp_username=m)
     emp_record = SurveyEmployee.objects.filter(employee=emp.id)
     Completed_survey = list()
@@ -468,8 +481,11 @@ def emp_survey_assign(request):
         'incomplete_count': incomplete_surveylen}
 
     return render(request, 'newsurvey/empdashboard.html', context)
+    # else:
+    #     return redirect('login')
 
 
+@employee_login_required
 def question_list(request, survey_id):
     """
     View to render the list of questions in a survey assigned to an employee.
@@ -511,6 +527,7 @@ def question_list(request, survey_id):
     return render(request, 'newsurvey/question_list.html', context)
 
 
+@employee_login_required
 def save(request, survey_id):
     """
     View to handle saving the survey in between. (without submitting)
@@ -528,7 +545,7 @@ def save(request, survey_id):
                     survey_id=Survey.objects.get(id=survey_id).id)
                 emp.submited_survey = True
                 emp.save()
-                
+
             is_record = SurveyResponse.objects.filter(
                 survey=Survey.objects.get(id=survey_id),
                 employee=Employee.objects.get(id=emp.id),
@@ -566,14 +583,15 @@ def save(request, survey_id):
     return redirect("emp_survey_assign")
 
 
+@employee_login_required
 def select_emp_action(request):
     """
     Select view to render for adding employees.
     """
-
     return render(request, 'newsurvey/emplist.html')
 
 
+@employee_login_required
 def redirect_to_emp_view(request):
     """
     Render the emp add view depending on selected option.
@@ -591,6 +609,7 @@ def redirect_to_emp_view(request):
             'org_total': org_list})
 
 
+@employee_login_required
 def render_emp_form(request):
     """
     render the view for adding single employee to the system.
@@ -600,21 +619,22 @@ def render_emp_form(request):
     return render(request, 'newsurvey/emp_form.html')
 
 
+@employee_login_required
 def emp_form_save(request):
     """
     adding multiple surveys
     """
     if request.method == "POST":
-            org_name = request.POST.get('OrgnisationName')
-            empform_obj1 = Employee()
-            empform_obj1.emp_name = request.POST.get('emp_name')
-            empform_obj1.emp_username = request.POST.get('emp_username')
-            empform_obj1.emp_password = request.POST.get('emp_password')
-            empform_obj1.emp_designation = request.POST.get('emp_designation')
-            empform_obj1.emp_address = request.POST.get('emp_address')
-            empform_obj1.company = Organization.objects.get(
-                company_name=org_name)
-            empform_obj1.save()
-            return redirect("index")
+        org_name = request.POST.get('OrgnisationName')
+        empform_obj1 = Employee()
+        empform_obj1.emp_name = request.POST.get('emp_name')
+        empform_obj1.emp_username = request.POST.get('emp_username')
+        empform_obj1.emp_password = request.POST.get('emp_password')
+        empform_obj1.emp_designation = request.POST.get('emp_designation')
+        empform_obj1.emp_address = request.POST.get('emp_address')
+        empform_obj1.company = Organization.objects.get(
+            company_name=org_name)
+        empform_obj1.save()
+        return redirect("index")
     else:
         return redirect('index')

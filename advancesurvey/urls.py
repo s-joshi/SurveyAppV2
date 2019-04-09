@@ -15,12 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 # start mailing scheduler every time the server starts running
 from newsurvey.email_schedular import ScheduleSendEmail
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('newsurvey/', include('newsurvey.urls'))
+    path('newsurvey/', include('newsurvey.urls')),
+    path('', RedirectView.as_view(url='/newsurvey/login'))
 
 ]
 

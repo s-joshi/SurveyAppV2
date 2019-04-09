@@ -56,13 +56,12 @@ class ScheduleSendEmail(object):
 
         for mailee in mailee_list:
             email_address = mailee.get('employee__emp_address')
-            survey_list = mailee.get('survey__survey_name')
             org_name = mailee.get('survey__company__company_name')
 
-            body = "Hi,\n" + "You are selected for " + str(
-                len(survey_list)) + " survey(s) for organization: " + (
-                org_name) + \
-                "\nLink for logging in: http://127.0.0.1:8000/newsurvey/login"
+            body = "Hi,\n" + "You are selected for survey(s)" \
+                             " for organization: " + \
+                   org_name + "\nLink for logging in: " \
+                              "http://127.0.0.1:8000/newsurvey/login"
 
             mailing_status = self.__send_email(email_address,
                                                "Survey starting today",
@@ -85,13 +84,12 @@ class ScheduleSendEmail(object):
 
         for mailee in mailee_list:
             email_address = mailee.get('employee__emp_address')
-            survey_list = mailee.get('survey__survey_name')
             org_name = mailee.get('survey__company__company_name')
 
-            body = "Hi,\n" + "You are selected for " + str(
-                len(survey_list)) + " survey(s) for organization: " + (
-                       org_name) + \
-                "\nLink for logging in: http://127.0.0.1:8000/newsurvey/login"
+            body = "Hi,\n" + "You are selected for survey(s)" \
+                             " for organization: " + \
+                   org_name + "\nLink for logging in: " \
+                              "http://127.0.0.1:8000/newsurvey/login"
 
             mailing_status = self.__send_email(email_address,
                                                "Survey starting today",
@@ -115,13 +113,13 @@ class ScheduleSendEmail(object):
 
         for mailee in mailee_list:
             email_address = mailee.get('employee__emp_address')
-            survey_list = mailee.get('survey__survey_name')
             org_name = mailee.get('survey__company__company_name')
 
-            body = "Hi,\n" + "You are selected for " + str(
-                len(survey_list)) + " survey(s) for organization: " + (
-                       org_name) + \
-                "\nLink for logging in: http://127.0.0.1:8000/newsurvey/login"
+            body = "Hi,\n" + "You are selected " \
+                             "for survey(s) for organization: " \
+                             "" + org_name \
+                   + "\nLink for logging in: " \
+                     "http://127.0.0.1:8000/newsurvey/login"
 
             mailing_status = self.__send_email(email_address,
                                                "Survey starting today",
@@ -145,13 +143,14 @@ class ScheduleSendEmail(object):
 
         for mailee in mailee_list:
             email_address = mailee.get('employee__emp_address')
-            survey_list = mailee.get('survey__survey_name')
             org_name = mailee.get('survey__company__company_name')
 
-            body = "Hi,\n" + "You are selected for " + str(
-                len(survey_list)) + " survey(s) for organization: " + (
-                       org_name) + \
-                "\nLink for logging in: http://127.0.0.1:8000/newsurvey/login"
+            body = "Hi," \
+                   "\n" + "You are selected for survey(s) " \
+                          "for organization: " + \
+                   org_name + "\n" \
+                              "Link for logging in: " \
+                              "http://127.0.0.1:8000/newsurvey/login"
 
             mailing_status = self.__send_email(email_address,
                                                "Survey starting today",
